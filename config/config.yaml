@@ -1,0 +1,3 @@
+apiVersion: operator.federation.k8s.io/v1alpha1
+kind: FederationV2
+projectName: federation-v2-operator
