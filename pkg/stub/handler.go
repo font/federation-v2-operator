@@ -2,15 +2,27 @@ package stub
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/marun/federation-v2-operator/pkg/apis/operator/v1alpha1"
+	v1alpha1 "github.com/marun/federation-v2-operator/pkg/apis/operator/v1alpha1"
 
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
-	"github.com/sirupsen/logrus"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
+	appsv1 "k8s.io/api/apps/v1"
+	"k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime/schema"
+)
+
+const (
+	// Name is hard-coded for now.  Allowing the name to vary would
+	// allow more than one instance of the controller manager and this
+	// is not supported.
+	fedName = "federation-controller-manager"
+
+	// Allowing the namespace to vary would require a canonical way to
+	// discover the namespace so that client tools supporting cluster
+	// join would still work.
+	fedNamespace = "federation-system"
 )
 
 func NewHandler() sdk.Handler {
@@ -18,51 +30,93 @@ func NewHandler() sdk.Handler {
 }
 
 type Handler struct {
-	// Fill me
 }
 
 func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
-	switch o := event.Object.(type) {
+	switch event.Object.(type) {
 	case *v1alpha1.FederationV2:
-		err := sdk.Create(newbusyBoxPod(o))
-		if err != nil && !errors.IsAlreadyExists(err) {
-			logrus.Errorf("Failed to create busybox pod : %v", err)
-			return err
+		// Ignore the delete event since the garbage collector will clean up all secondary resources for the CR
+		// All secondary resources must have the CR set as their OwnerReference for this to be the case
+		if event.Deleted {
+			return nil
 		}
+
+		fedv2 := event.Object.(*v1alpha1.FederationV2)
+
+		// TODO(marun) Only output error once per instance
+		if fedv2.Name != fedName {
+			return fmt.Errorf("Only one FederationV2 resource can exist, and it must be named %q.", fedName)
+		}
+
+		// Create the deployment if it doesn't exist
+		dep := deploymentForFederationV2(fedv2)
+		err := sdk.Create(dep)
+		if err != nil && !apierrors.IsAlreadyExists(err) {
+			return fmt.Errorf("failed to create deployment: %v", err)
+		}
+
+		// TODO(marun) What kind of status would be useful to record?
 	}
 	return nil
 }
 
-// newbusyBoxPod demonstrates how to create a busybox pod
-func newbusyBoxPod(cr *v1alpha1.FederationV2) *corev1.Pod {
-	labels := map[string]string{
-		"app": "busy-box",
+// deploymentForFederationV2 returns a federation-v2 Deployment object
+func deploymentForFederationV2(f *v1alpha1.FederationV2) *appsv1.Deployment {
+	ls := map[string]string{
+		"api":           "federation",
+		"control-plane": "controller-manager",
 	}
-	return &corev1.Pod{
+
+	// TODO(marun) Switch to a stateful set to ensure only a single instance
+	replicas := int32(1)
+
+	dep := &appsv1.Deployment{
 		TypeMeta: metav1.TypeMeta{
-			Kind:       "Pod",
-			APIVersion: "v1",
+			APIVersion: "apps/v1",
+			Kind:       "Deployment",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "busy-box",
-			Namespace: cr.Namespace,
-			OwnerReferences: []metav1.OwnerReference{
-				*metav1.NewControllerRef(cr, schema.GroupVersionKind{
-					Group:   v1alpha1.SchemeGroupVersion.Group,
-					Version: v1alpha1.SchemeGroupVersion.Version,
-					Kind:    "FederationV2",
-				}),
-			},
-			Labels: labels,
+			Name:      f.Name,
+			Namespace: fedNamespace,
 		},
-		Spec: corev1.PodSpec{
-			Containers: []corev1.Container{
-				{
-					Name:    "busybox",
-					Image:   "busybox",
-					Command: []string{"sleep", "3600"},
+		Spec: appsv1.DeploymentSpec{
+			Replicas: &replicas,
+			Selector: &metav1.LabelSelector{
+				MatchLabels: ls,
+			},
+			Template: v1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: ls,
+				},
+				Spec: v1.PodSpec{
+					// TODO(marun) Apply the supplied configuration as feature gate paramters
+					Containers: []v1.Container{{
+						Image:   "quay.io/kubernetes-multicluster/federation-v2:latest",
+						Name:    "controller-manager",
+						Command: []string{"/root/controller-manager"},
+					}},
 				},
 			},
 		},
+	}
+	addOwnerRefToObject(dep, asOwner(f))
+	return dep
+
+}
+
+// addOwnerRefToObject appends the desired OwnerReference to the object
+func addOwnerRefToObject(obj metav1.Object, ownerRef metav1.OwnerReference) {
+	obj.SetOwnerReferences(append(obj.GetOwnerReferences(), ownerRef))
+}
+
+// asOwner returns an OwnerReference set as the memcached CR
+func asOwner(f *v1alpha1.FederationV2) metav1.OwnerReference {
+	trueVar := true
+	return metav1.OwnerReference{
+		APIVersion: f.APIVersion,
+		Kind:       f.Kind,
+		Name:       f.Name,
+		UID:        f.UID,
+		Controller: &trueVar,
 	}
 }
