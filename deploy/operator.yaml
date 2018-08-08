@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: federation-v2-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: federation-v2-operator
+  template:
+    metadata:
+      labels:
+        name: federation-v2-operator
+    spec:
+      containers:
+        - name: federation-v2-operator
+          image: quay.io/marun/federation-v2-operator:v0.0.1
+          ports:
+          - containerPort: 60000
+            name: metrics
+          command:
+          - federation-v2-operator
+          imagePullPolicy: Always
+          env:
+            - name: WATCH_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: OPERATOR_NAME
+              value: "federation-v2-operator"
