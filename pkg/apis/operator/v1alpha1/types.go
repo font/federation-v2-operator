@@ -22,7 +22,9 @@ type FederationV2 struct {
 }
 
 type FederationV2Spec struct {
-	// Fill me
+	PushReconciliation bool `json:"pushReconciliation,omitempty"`
+	Scheduling         bool `json:"scheduling,omitempty"`
+	ServiceDiscovery   bool `json:"serviceDiscovery,omitempty"`
 }
 type FederationV2Status struct {
 	// Fill me
