@@ -1,0 +1,87 @@
+apiVersion: app.coreos.com/v1alpha1
+kind: ClusterServiceVersion-v1
+metadata:
+  name: federationv2.v0.0.1
+spec:
+  install:
+    strategy: deployment
+    spec:
+      permissions:
+      - serviceAccountName: federation-v2-operator
+        rules:
+        - apiGroups:
+          - operator.federation.k8s.io
+          resources:
+          - "*"
+          verbs:
+          - "*"
+        - apiGroups:
+          - ""
+          resources:
+          - pods
+          - services
+          - endpoints
+          - persistentvolumeclaims
+          - events
+          - configmaps
+          - secrets
+          verbs:
+          - "*"
+        - apiGroups:
+          - apps
+          resources:
+          - deployments
+          - daemonsets
+          - replicasets
+          - statefulsets
+          verbs:
+          - "*"
+      deployments:
+      - name: federation-v2-operator
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              app: federation-v2-operator
+          template:
+            metadata:
+              labels:
+                app: federation-v2-operator
+            spec:
+              containers:
+                - name: federation-v2-operator-olm-owned
+                  image: quay.io/marun/federation-v2-operator:v0.0.1
+                  command:
+                  - federation-v2-operator
+                  imagePullPolicy: Always
+                  env:
+                  - name: MY_POD_NAMESPACE
+                    valueFrom:
+                      fieldRef:
+                        fieldPath: metadata.namespace
+                  - name: MY_POD_NAME
+                    valueFrom:
+                      fieldRef:
+                        fieldPath: metadata.name
+                  - name: WATCH_NAMESPACE
+                    valueFrom:
+                      fieldRef:
+                        fieldPath: metadata.namespace
+                  - name: OPERATOR_NAME
+                    value: "federation-v2-operator"
+              restartPolicy: Always
+              terminationGracePeriodSeconds: 5
+              serviceAccountName: federation-v2-operator
+              serviceAccount: federation-v2-operator
+  customresourcedefinitions:
+    owned:
+      - description: Represents an instance of a FederationV2 application
+        displayName: FederationV2 Application
+        kind: FederationV2
+        name: federationv2s.operator.federation.k8s.io
+        version: v1alpha1
+  version: 0.0.1
+  displayName: FederationV2
+  labels:
+    olm-owner-enterprise-app: federation-v2-operator
+    olm-status-descriptors: federationv2.v0.0.1
