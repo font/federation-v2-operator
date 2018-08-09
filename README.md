@@ -1,0 +1,71 @@
+# Cluster Operator for FederationV2
+
+This repo contains the in-progress prototype of a cluster operator for
+FederationV2.  Since Federation is currently cluster-scoped, only a
+single instance of the control plane should be deployed to a given
+cluster.
+
+FederationV2 expects to be run in the federation-system namespace and
+have sufficient access to read and add finalizers to all federation
+resources in the cluster.  Since by default an operator can only
+create resources in the namespace in which it is deployed, the
+federation operator also needs to be deployed to the federation-system
+namespace.
+
+
+## Prepare the federation-system namespace
+
+- Create namespace `federation-system`
+
+```bash
+kubectl create namespace federation-system
+```
+
+- Grant the federation control plane the permissions it needs to run.
+
+```bash
+# TODO(marun) Limit cluster-scoped permissions to federation resources (template/placement/etc)
+kubectl create clusterrolebinding federation-admin \
+  --clusterrole=cluster-admin --serviceaccount=federation-system:default
+```
+
+## Deploying the operator
+
+The federation operator can be deployed manually or via OLM.
+
+ - Manually:
+
+```bash
+kubectl create -n federation-system -f deploy/rbac.yaml
+kubectl create -f deploy/crd.yaml
+kubectl create -n federation-system -f deploy/operator.yaml
+```
+
+ - Via OLM (must be [installed](https://github.com/operator-framework/operator-lifecycle-manager/blob/master/Documentation/install/install.md)):
+
+```bash
+kubectl create -f deploy/olm-catalog/crd.yaml
+kubectl create -n federation-system -f deploy/olm-catalog/csv.yaml
+```
+
+- Checking that the operator is running
+
+```bash
+# Look for a running pod with the name prefix of 'federation-v2-operator-'
+kubectl get pods -n federation-system
+```
+
+## Deploying the federation control plane
+
+- Create the operator CR in the federation-system namespace
+
+```bash
+kubectl create -n federation-system -f deploy/cr.yaml
+```
+
+- Check that the federation control manager is running
+
+```bash
+# Look for a running pod with the name prefix of 'federation-controller-manager-'
+kubectl get pods -n federation-system
+```
