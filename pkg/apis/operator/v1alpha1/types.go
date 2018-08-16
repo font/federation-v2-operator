@@ -22,7 +22,9 @@ type ClusterRegistry struct {
 }
 
 type ClusterRegistrySpec struct {
-	// Fill me
+	// Version is the upstream semantic version for the Cluster Registry CRD
+	// e.g. v0.0.6.
+	Version string `json:"version,omitempty"`
 }
 type ClusterRegistryStatus struct {
 	// Fill me
