@@ -1,6 +1,8 @@
 package common
 
 import (
+	"regexp"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
@@ -19,4 +21,11 @@ func AsOwner(obj metav1.Object, trueVar bool) metav1.OwnerReference {
 		UID:        obj.GetUID(),
 		Controller: &trueVar,
 	}
+}
+
+// ValidateVersion returns true if a given string matches against the regular
+// expression, otherwise returns false.
+func ValidateVersion(regex, s string) bool {
+	re := regexp.MustCompile(regex)
+	return re.MatchString(s)
 }
