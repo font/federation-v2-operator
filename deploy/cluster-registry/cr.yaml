@@ -1,0 +1,4 @@
+apiVersion: "operator.federation.k8s.io/v1alpha1"
+kind: "ClusterRegistry"
+metadata:
+  name: "cluster-registry"
