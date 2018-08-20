@@ -29,7 +29,7 @@ func main() {
 	if err != nil {
 		logrus.Fatalf("Failed to get watch namespace: %v", err)
 	}
-	resyncPeriod := 5
+	resyncPeriod := 0 // Disable periodic events i.e. only send events when updated.
 	for _, kind := range kinds {
 		logrus.Infof("Watching %s, %s, %s, %d", resource, kind, namespace, resyncPeriod)
 		sdk.Watch(resource, kind, namespace, resyncPeriod)
