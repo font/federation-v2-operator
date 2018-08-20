@@ -1,7 +1,6 @@
 package federation
 
 import (
-	"context"
 	"fmt"
 
 	v1alpha1 "github.com/marun/federation-v2-operator/pkg/apis/operator/v1alpha1"
@@ -26,38 +25,29 @@ const (
 	fedNamespace = "federation-system"
 )
 
-func NewHandler() sdk.Handler {
-	return &Handler{}
-}
-
-type Handler struct {
-}
-
-func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
-	switch event.Object.(type) {
-	case *v1alpha1.FederationV2:
-		// Ignore the delete event since the garbage collector will clean up all secondary resources for the CR
-		// All secondary resources must have the CR set as their OwnerReference for this to be the case
-		if event.Deleted {
-			return nil
-		}
-
-		fedv2 := event.Object.(*v1alpha1.FederationV2)
-
-		// TODO(marun) Only output error once per instance
-		if fedv2.Name != fedName {
-			return fmt.Errorf("Only one FederationV2 resource can exist, and it must be named %q.", fedName)
-		}
-
-		// Create the deployment if it doesn't exist
-		dep := deploymentForFederationV2(fedv2)
-		err := sdk.Create(dep)
-		if err != nil && !apierrors.IsAlreadyExists(err) {
-			return fmt.Errorf("failed to create deployment: %v", err)
-		}
-
-		// TODO(marun) What kind of status would be useful to record?
+// Handle processes the FederationV2 Operator event object for Federation-V2.
+func Handle(event sdk.Event) error {
+	// Ignore the delete event since the garbage collector will clean up all secondary resources for the CR
+	// All secondary resources must have the CR set as their OwnerReference for this to be the case
+	if event.Deleted {
+		return nil
 	}
+
+	fedv2 := event.Object.(*v1alpha1.FederationV2)
+
+	// TODO(marun) Only output error once per instance
+	if fedv2.Name != fedName {
+		return fmt.Errorf("Only one FederationV2 resource can exist, and it must be named %q.", fedName)
+	}
+
+	// Create the deployment if it doesn't exist
+	dep := deploymentForFederationV2(fedv2)
+	err := sdk.Create(dep)
+	if err != nil && !apierrors.IsAlreadyExists(err) {
+		return fmt.Errorf("failed to create deployment: %v", err)
+	}
+
+	// TODO(marun) What kind of status would be useful to record?
 	return nil
 }
 
