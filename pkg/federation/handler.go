@@ -5,13 +5,13 @@ import (
 	"fmt"
 
 	v1alpha1 "github.com/marun/federation-v2-operator/pkg/apis/operator/v1alpha1"
+	"github.com/marun/federation-v2-operator/pkg/common"
 
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 const (
@@ -100,23 +100,7 @@ func deploymentForFederationV2(f *v1alpha1.FederationV2) *appsv1.Deployment {
 			},
 		},
 	}
-	addOwnerRefToObject(dep, asOwner(f, true))
+	common.AddOwnerRefToObject(dep, common.AsOwner(f, true))
 	return dep
 
-}
-
-// addOwnerRefToObject appends the desired OwnerReference to the object
-func addOwnerRefToObject(obj metav1.Object, ownerRef metav1.OwnerReference) {
-	obj.SetOwnerReferences(append(obj.GetOwnerReferences(), ownerRef))
-}
-
-// asOwner returns an OwnerReference set as the CR object passed in.
-func asOwner(obj metav1.Object, trueVar bool) metav1.OwnerReference {
-	return metav1.OwnerReference{
-		APIVersion: obj.(schema.ObjectKind).GroupVersionKind().Version,
-		Kind:       obj.(schema.ObjectKind).GroupVersionKind().Kind,
-		Name:       obj.GetName(),
-		UID:        obj.GetUID(),
-		Controller: &trueVar,
-	}
 }
