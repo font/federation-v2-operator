@@ -360,6 +360,15 @@
   revision = "acf347b865f29325eb61f4cd2df11e86e073a5ee"
 
 [[projects]]
+  name = "k8s.io/apiextensions-apiserver"
+  packages = [
+    "pkg/apis/apiextensions",
+    "pkg/apis/apiextensions/v1beta1"
+  ]
+  revision = "f1425805c0335c1f5b23e70f0154747b3df5a16a"
+  version = "kubernetes-1.9.3"
+
+[[projects]]
   name = "k8s.io/apimachinery"
   packages = [
     "pkg/api/errors",
@@ -514,6 +523,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "ecd2e1d13a38e943f4705a5b804ae00256c7f741f0eb49211cc498d71278059c"
+  inputs-digest = "6b8e4b690ab17736394fda527e52239d6138d0235eeea7e943284e3b5892bc62"
   solver-name = "gps-cdcl"
   solver-version = 1
