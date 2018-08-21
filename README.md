@@ -1,9 +1,9 @@
 # Cluster Operator for FederationV2
 
 This repo contains the in-progress prototype of a cluster operator for
-FederationV2.  Since Federation is currently cluster-scoped, only a
-single instance of the control plane should be deployed to a given
-cluster.
+FederationV2 and ClusterRegistry.  Since Federation and the Cluster Registry
+CRD are currently cluster-scoped, only a single instance of each should be
+deployed to a given cluster.
 
 FederationV2 expects to be run in the federation-system namespace and
 have sufficient access to read and add finalizers to all federation
@@ -37,7 +37,7 @@ The federation operator can be deployed manually or via OLM.
 
 ```bash
 kubectl create -n federation-system -f deploy/rbac.yaml
-kubectl create -f deploy/crd.yaml
+kubectl create -f deploy/crd.yaml -f deploy/cluster-registry/crd.yaml
 kubectl create -n federation-system -f deploy/operator.yaml
 ```
 
@@ -53,6 +53,28 @@ kubectl create -n federation-system -f deploy/olm-catalog/csv.yaml
 ```bash
 # Look for a running pod with the name prefix of 'federation-v2-operator-'
 kubectl get pods -n federation-system
+```
+
+## Deploying the Cluster Registry
+
+- Create the operator CR for the cluster registry in the federation-system
+  namespace:
+
+```bash
+kubectl create -n federation-system -f deploy/cluster-registry/cr.yaml
+```
+
+- Check that the cluster registry `clusters` resource is recognized and reports
+  `No resources found`:
+
+```bash
+kubectl get clusters.clusterregistry.k8s.io
+```
+
+- Check that the `kube-multicluster-public` namespace has been created:
+
+```bash
+kubectl get ns kube-multicluster-public
 ```
 
 ## Deploying the federation control plane
