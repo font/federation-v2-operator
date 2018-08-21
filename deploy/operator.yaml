@@ -28,3 +28,11 @@ spec:
                   fieldPath: metadata.namespace
             - name: OPERATOR_NAME
               value: "federation-v2-operator"
+          # Mount host certs for verifying https connections
+          volumeMounts:
+            - mountPath: /etc/ssl/certs
+              name: "ssl-certs"
+      volumes:
+        - name: "ssl-certs"
+          hostPath:
+            path: "/etc/ssl/certs"
