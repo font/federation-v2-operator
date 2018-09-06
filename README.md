@@ -13,12 +13,13 @@ federation operator also needs to be deployed to the federation-system
 namespace.
 
 
-## Prepare the federation-system namespace
+## Prepare the namespaces
 
-- Create namespace `federation-system`
+- Create namespace `federation-system` and `kube-multicluster-public`:
 
 ```bash
 kubectl create namespace federation-system
+kubectl create namespace kube-multicluster-public
 ```
 
 - Grant the federation control plane the permissions it needs to run.
@@ -26,10 +27,10 @@ kubectl create namespace federation-system
 ```bash
 # TODO(marun) Limit cluster-scoped permissions to federation resources (template/placement/etc)
 kubectl create clusterrolebinding federation-admin \
-  --clusterrole=cluster-admin --serviceaccount=federation-system:default
+  --clusterrole=cluster-admin --serviceaccount=federation-system:federation-v2-operator
 ```
 
-## Deploying the operator
+## Deploying the federation control plane operator
 
 The federation operator can be deployed manually or via OLM.
 
@@ -37,35 +38,64 @@ The federation operator can be deployed manually or via OLM.
 
 ```bash
 kubectl create -n federation-system -f deploy/rbac.yaml
-kubectl create -f deploy/crd.yaml
+kubectl create --validate=false -f deploy/crd.yaml
 kubectl create -n federation-system -f deploy/operator.yaml
 ```
 
  - Via OLM (must be [installed](https://github.com/operator-framework/operator-lifecycle-manager/blob/master/Documentation/install/install.md)):
 
 ```bash
-kubectl create -f deploy/olm-catalog/crd.yaml
+kubectl create --validate=false -f deploy/olm-catalog/crd.yaml
 kubectl create -n federation-system -f deploy/olm-catalog/csv.yaml
 ```
 
-- Checking that the operator is running
+- Checking that the federation-v2 operator is running
 
 ```bash
 # Look for a running pod with the name prefix of 'federation-v2-operator-'
 kubectl get pods -n federation-system
 ```
 
-## Deploying the federation control plane
+## Enabling the federation controllers
 
-- Create the operator CR in the federation-system namespace
+There are numerous custom resources that you can create to enable various
+controllers. The following lists the controllers and how to enable or disable
+them.
+
+### FederatedType Controllers
+
+TBD
+
+### MultiClusterIngressDNS Controller
+
+TBD
+
+### MultiClusterServiceDNS Controller
+
+TBD
+
+### SchedulingPreferences Controller
+
+TBD
+
+## Cleanup
+
+- Delete namespaces:
 
 ```bash
-kubectl create -n federation-system -f deploy/cr.yaml
+
+kubectl delete namespace federation-system
+kubectl delete namespace kube-multicluster-public
 ```
 
-- Check that the federation control manager is running
+- Remove the federation control plane permissions it needs to run:
 
 ```bash
-# Look for a running pod with the name prefix of 'federation-controller-manager-'
-kubectl get pods -n federation-system
+kubectl delete clusterrolebinding federation-admin
+```
+
+- Remove required CRDs:
+
+```bash
+kubectl delete -f deploy/crd.yaml
 ```
