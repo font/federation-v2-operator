@@ -7,7 +7,7 @@ spec:
     strategy: deployment
     spec:
       permissions:
-      - serviceAccountName: federation-v2-operator
+      - serviceAccountName: federation-controller-manager
         rules:
         - apiGroups:
           - core.federation.k8s.io
@@ -50,20 +50,19 @@ spec:
           - "*"
       # TODO(font): use statefulset
       deployments:
-      # TODO(font): consider best name for this controller-manager/operator deployment
-      - name: federation-v2-operator
+      - name: federation-controller-manager
         spec:
           replicas: 1
           selector:
             matchLabels:
-              app: federation-v2-operator
+              app: federation-controller-manager
           template:
             metadata:
               labels:
-                app: federation-v2-operator
+                app: federation-controller-manager
             spec:
               containers:
-                - name: federation-v2-operator-olm-owned
+                - name: federation-controller-manager-olm-owned
                   image: quay.io/kubernetes-multicluster/federation-v2:canary
                   resources:
                     limits:
@@ -91,11 +90,11 @@ spec:
                       fieldRef:
                         fieldPath: metadata.namespace
                   - name: OPERATOR_NAME
-                    value: "federation-v2-operator"
+                    value: "federation-controller-manager"
               restartPolicy: Always
               terminationGracePeriodSeconds: 5
-              serviceAccountName: federation-v2-operator
-              serviceAccount: federation-v2-operator
+              serviceAccountName: federation-controller-manager
+              serviceAccount: federation-controller-manager
   customresourcedefinitions:
     owned:
         # TODO(font): Move Cluster CRD to required once OLM supports CSVs
@@ -243,5 +242,5 @@ spec:
   version: 0.0.2
   displayName: FederationV2
   labels:
-    olm-owner-enterprise-app: federation-v2-operator
+    olm-owner-enterprise-app: federation-controller-manager
     olm-status-descriptors: federationv2.v0.0.2

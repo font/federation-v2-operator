@@ -3,19 +3,19 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   # TODO(font): consider best name for this controller-manager/operator deployment
-  name: federation-v2-operator
+  name: federation-controller-manager
 spec:
   replicas: 1
   selector:
     matchLabels:
-      name: federation-v2-operator
+      name: federation-controller-manager
   template:
     metadata:
       labels:
-        name: federation-v2-operator
+        name: federation-controller-manager
     spec:
       containers:
-        - name: federation-v2-operator
+        - name: federation-controller-manager
           image: quay.io/kubernetes-multicluster/federation-v2:canary
           ports:
           - containerPort: 60000
@@ -39,5 +39,5 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
             - name: OPERATOR_NAME
-              value: "federation-v2-operator"
-      serviceAccountName: federation-v2-operator
+              value: "federation-controller-manager"
+      serviceAccountName: federation-controller-manager

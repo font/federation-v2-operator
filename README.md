@@ -27,7 +27,7 @@ kubectl create namespace kube-multicluster-public
 ```bash
 # TODO(marun) Limit cluster-scoped permissions to federation resources (template/placement/etc)
 kubectl create clusterrolebinding federation-admin \
-  --clusterrole=cluster-admin --serviceaccount=federation-system:federation-v2-operator
+  --clusterrole=cluster-admin --serviceaccount=federation-system:federation-controller-manager
 ```
 
 ## Deploying the federation control plane operator
@@ -52,7 +52,7 @@ kubectl create -n federation-system -f deploy/olm-catalog/csv.yaml
 - Checking that the federation-v2 operator is running
 
 ```bash
-# Look for a running pod with the name prefix of 'federation-v2-operator-'
+# Look for a running pod with the name prefix of 'federation-controller-manager-'
 kubectl get pods -n federation-system
 ```
 
