@@ -1,6 +1,8 @@
 apiVersion: apps/v1
+# TODO(font): use statefulset
 kind: Deployment
 metadata:
+  # TODO(font): consider best name for this controller-manager/operator deployment
   name: federation-v2-operator
 spec:
   replicas: 1
@@ -14,13 +16,23 @@ spec:
     spec:
       containers:
         - name: federation-v2-operator
-          image: quay.io/marun/federation-v2-operator:v0.0.1
+          image: quay.io/kubernetes-multicluster/federation-v2:canary
           ports:
           - containerPort: 60000
             name: metrics
+          resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 100m
+              memory: 64Mi
           command:
-          - federation-v2-operator
+            - /root/controller-manager
+          args:
+            - --install-crds=false
           imagePullPolicy: Always
+          # TODO(font): Replace with namespace env vars for federation controller manager.
           env:
             - name: WATCH_NAMESPACE
               valueFrom:
@@ -28,3 +40,4 @@ spec:
                   fieldPath: metadata.namespace
             - name: OPERATOR_NAME
               value: "federation-v2-operator"
+      serviceAccountName: federation-v2-operator
