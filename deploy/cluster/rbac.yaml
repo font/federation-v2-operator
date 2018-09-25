@@ -11,6 +11,12 @@ metadata:
   name: federation-controller-manager
 rules:
 - apiGroups:
+  - clusterregistry.k8s.io
+  resources:
+  - clusters
+  verbs:
+  - "*"
+- apiGroups:
   - core.federation.k8s.io
   resources:
   - "*"
