@@ -207,12 +207,22 @@ spec:
         kind: FederatedService
         name: federatedservices.core.federation.k8s.io
         version: v1alpha1
+      - description: Represents an instance of a FederatedServiceAccount resource
+        displayName: FederatedServiceAccount Resource
+        kind: FederatedServiceAccount
+        name: federatedserviceaccounts.core.federation.k8s.io
+        version: v1alpha1
+      - description: Represents an instance of a FederatedServiceAccountPlacement resource
+        displayName: FederatedServiceAccountPlacement Resource
+        kind: FederatedServiceAccountPlacement
+        name: federatedserviceaccountplacements.core.federation.k8s.io
+        version: v1alpha1
       - description: Represents an instance of a FederatedServicePlacement resource
         displayName: FederatedServicePlacement Resource
         kind: FederatedServicePlacement
         name: federatedserviceplacements.core.federation.k8s.io
         version: v1alpha1
-      - description: Represents an instance of a FederationV2 FederatedType controller
+      - description: Represents an instance of a FederationV2 sync controller
         displayName: FederationV2 Push Reconciler Application
         kind: FederatedTypeConfig
         name: federatedtypeconfigs.core.federation.k8s.io
