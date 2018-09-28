@@ -68,7 +68,7 @@ spec:
                 app: federation-controller-manager
             spec:
               containers:
-                - name: federation-controller-manager-olm-owned
+                - name: controller-manager
                   image: quay.io/kubernetes-multicluster/federation-v2:v0.0.2-rc.1
                   resources:
                     limits:
